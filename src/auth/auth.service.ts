@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { User } from 'generated/prisma';
-import ms from 'ms';
+import ms, { StringValue } from 'ms';
 import { UsersService } from 'src/users/users.service';
 import { TokenPayload } from './token-payload.interface';
 import { JwtService } from '@nestjs/jwt';
@@ -18,11 +17,11 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async login(user: User, response: Response) {
+  login(user: User, response: Response) {
     const expires = new Date();
     expires.setMilliseconds(
       expires.getMilliseconds() +
-        ms(this.configService.getOrThrow<string>('JWT_EXPIRATION')),
+        ms(this.configService.getOrThrow<StringValue>('JWT_EXPIRATION')),
     );
 
     const tokenPayload: TokenPayload = {

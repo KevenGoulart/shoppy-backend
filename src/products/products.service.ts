@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { promises as fs } from 'fs';
 import { Injectable, NotFoundException } from '@nestjs/common';
@@ -6,8 +5,8 @@ import { CreateProductRequest } from './dto/create-product.request';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { join } from 'path';
 import { PRODUCT_IMAGES } from './product-images';
-import { Prisma } from '@prisma/client';
 import { ProductsGateway } from './products.gateway';
+import { Prisma } from 'generated/prisma';
 
 @Injectable()
 export class ProductsService {
@@ -29,10 +28,13 @@ export class ProductsService {
 
   async getProducts(status?: string) {
     const args: Prisma.ProductFindManyArgs = {};
+
     if (status === 'available') {
       args.where = { sold: false };
     }
+
     const products = await this.prismaService.product.findMany(args);
+
     return Promise.all(
       products.map(async (product) => ({
         ...product,

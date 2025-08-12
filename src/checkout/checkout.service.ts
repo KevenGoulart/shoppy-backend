@@ -46,6 +46,9 @@ export class CheckoutService {
     const session = await this.stripe.checkout.sessions.retrieve(
       event.data.object.id,
     );
+    if (!session.metadata || !session.metadata.productId) {
+      throw new Error('Session metadata or productId is missing');
+    }
     await this.productService.update(parseInt(session.metadata.productId), {
       sold: true,
     });
