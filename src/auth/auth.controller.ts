@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Controller, Post, Res, UseGuards } from '@nestjs/common';
 import { LocalAuthGuard } from './guard/local-auth.guard';
 import { CurrentUser } from './current-user.decorator';
