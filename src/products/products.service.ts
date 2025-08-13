@@ -1,15 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { promises as fs } from 'fs';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductRequest } from './dto/create-product.request';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { join } from 'path';
-import { PRODUCT_IMAGES } from './product-images';
 import { ProductsGateway } from './products.gateway';
 import { Prisma } from 'generated/prisma';
+import {
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
 
 @Injectable()
 export class ProductsService {
+  private readonly s3Client = new S3Client({
+    region: 'sa-east-1',
+  });
+  private readonly bucket = 'shoppy-product-images';
+
   constructor(
     private readonly prismaService: PrismaService,
     private readonly productsGateway: ProductsGateway,
@@ -56,6 +63,16 @@ export class ProductsService {
     }
   }
 
+  async uploadProductImage(productId: string, file: Buffer) {
+    await this.s3Client.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: `${productId}.jpg`,
+        Body: file,
+      }),
+    );
+  }
+
   async update(productId: number, data: Prisma.ProductUpdateInput) {
     await this.prismaService.product.update({
       where: {
@@ -68,11 +85,13 @@ export class ProductsService {
 
   private async imageExists(productId: number) {
     try {
-      await fs.access(
-        join(`${PRODUCT_IMAGES}/${productId}.jpg`),
-        fs.constants.F_OK,
+      const { Body } = await this.s3Client.send(
+        new GetObjectCommand({
+          Bucket: this.bucket,
+          Key: `${productId}.jpg`,
+        }),
       );
-      return true;
+      return !!Body;
     } catch (err) {
       return false;
     }
